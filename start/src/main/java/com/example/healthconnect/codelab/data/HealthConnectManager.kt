@@ -150,6 +150,7 @@ class HealthConnectManager(private val context: Context) {
   }
 
   suspend fun getTotalSteps(start: Instant, end: Instant): Long {
+    Log.d("HEALTHCONNECT", "${TimeRangeFilter.between(start, end).toString()}")
     val result = healthConnectClient.aggregate(
       AggregateRequest(
         metrics = setOf(StepsRecord.COUNT_TOTAL),

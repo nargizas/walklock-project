@@ -68,10 +68,11 @@ fun HealthConnectApp(healthConnectManager: HealthConnectManager, dataStore: Data
         TopAppBar(
           title = {
             val titleId = when (currentRoute) {
-              Screen.ExerciseSessions.route -> Screen.ExerciseSessions.titleId
-              Screen.InputReadings.route -> Screen.InputReadings.titleId
+              Screen.LoginScreen.route -> Screen.LoginScreen.titleId
               Screen.DifferentialChanges.route -> Screen.DifferentialChanges.titleId
               Screen.StepsCounter.route -> Screen.StepsCounter.titleId
+              Screen.StepsCounterWithFriends.route -> Screen.StepsCounter.titleId
+              Screen.ProgressScreen.route -> Screen.ProgressScreen.titleId
               else -> R.string.app_name
             }
             Text(stringResource(titleId))

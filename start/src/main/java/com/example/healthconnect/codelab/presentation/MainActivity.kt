@@ -29,9 +29,11 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import com.google.firebase.FirebaseApp
 import java.util.UUID
 
 /**
@@ -50,7 +52,7 @@ class MainActivity : ComponentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-
+    FirebaseApp.initializeApp(this)
     val healthConnectManager = (application as BaseApplication).healthConnectManager
     Log.d("HEALTHCONNECT", "maybe here")
     val bluetoothManager: BluetoothManager = getSystemService(BluetoothManager::class.java)
@@ -61,6 +63,19 @@ class MainActivity : ComponentActivity() {
     }
     val device: BluetoothDevice? = bluetoothAdapter.getRemoteDevice(DEVICE_ADDRESS)
     Log.d("HEALTHCONNECT", "or here")
+    val permissions = arrayOf(
+      Manifest.permission.BLUETOOTH,
+      Manifest.permission.BLUETOOTH_ADMIN,
+      Manifest.permission.ACCESS_FINE_LOCATION
+    )
+
+    if (permissions.any {
+        ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+      }) {
+      ActivityCompat.requestPermissions(this, permissions, REQUEST_BLUETOOTH_PERMISSION)
+      Log.d("HEALTHCONNECT", "Requested Bluetooth permissions")
+    }
+
     try {
       if (ActivityCompat.checkSelfPermission(
           this,
@@ -76,19 +91,21 @@ class MainActivity : ComponentActivity() {
       }
        device?.let {
          bluetoothSocket = device.createRfcommSocketToServiceRecord(uuid)
+         Log.d("HEALTHCONNECT", "socket obtained")
          bluetoothSocket?.connect()
          Log.d("HEALTHCONNECT", "socket connected")
        }
     } catch (e: Exception) {
       // Handle connection error
       Log.d("HEALTHCONNECT", "some error")
-      return
+//      return
     }
 
     // ...
 
     setContent {
       bluetoothSocket?.let { socket ->
+        Log.d("HEALTHCONNECT", "success")
         HealthConnectApp(
           healthConnectManager = healthConnectManager,
           dataStore = dataStore,

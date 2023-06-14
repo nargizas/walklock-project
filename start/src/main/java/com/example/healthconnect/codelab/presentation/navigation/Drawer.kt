@@ -46,6 +46,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.healthconnect.codelab.R
 import com.example.healthconnect.codelab.presentation.theme.HealthConnectTheme
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -60,84 +61,114 @@ fun Drawer(
     scaffoldState: ScaffoldState,
     navController: NavController,
 ) {
+    val currentUser = FirebaseAuth.getInstance().currentUser
+
   val navBackStackEntry by navController.currentBackStackEntryAsState()
   val currentRoute = navBackStackEntry?.destination?.route
   val activity = LocalContext.current
   Column {
-//    Row(
-//      modifier = Modifier.fillMaxWidth(),
-//      horizontalArrangement = Arrangement.Center
-//    ) {
-//      Image(
-//        modifier = Modifier
-//            .width(96.dp)
-//            .clickable {
-//                navController.navigate(Screen.WelcomeScreen.route) {
-//                    navController.graph.startDestinationRoute?.let { route ->
-//                        popUpTo(route) {
-//                            saveState = true
-//                        }
-//                    }
-//                    launchSingleTop = true
-//                    restoreState = true
-//                }
-//                scope.launch {
-//                    scaffoldState.drawerState.close()
-//                }
-//            },
-//        painter = painterResource(id = R.drawable.ic_health_connect_logo),
-//        contentDescription = stringResource(id = R.string.health_connect_logo)
-//      )
-//    }
-//    Spacer(modifier = Modifier.height(16.dp))
-    Text(
+    Row(
       modifier = Modifier.fillMaxWidth(),
-      textAlign = TextAlign.Center,
-      text = stringResource(id = R.string.app_name)
-    )
-    Spacer(modifier = Modifier.height(16.dp))
-    Screen.values().filter { it.hasMenuItem }.forEach { item ->
-      DrawerItem(
-        item = item,
-        selected = item.route == currentRoute,
-        onItemClick = {
-          navController.navigate(item.route) {
-            // See: https://developer.android.com/jetpack/compose/navigation#nav-to-composable
-            navController.graph.startDestinationRoute?.let { route ->
-              popUpTo(route) {
-                saveState = true
-              }
-            }
-            launchSingleTop = true
-            restoreState = true
-          }
-          scope.launch {
-            scaffoldState.drawerState.close()
-          }
-        }
+      horizontalArrangement = Arrangement.Center
+    ) {
+      Image(
+        modifier = Modifier
+            .width(96.dp)
+            .clickable {
+                navController.navigate(Screen.WelcomeScreen.route) {
+                    navController.graph.startDestinationRoute?.let { route ->
+                        popUpTo(route) {
+                            saveState = true
+                        }
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+                scope.launch {
+                    scaffoldState.drawerState.close()
+                }
+            },
+        painter = painterResource(id = R.drawable.logo),
+        contentDescription = stringResource(id = R.string.health_connect_logo)
       )
     }
     Spacer(modifier = Modifier.height(16.dp))
-    Row(
-      modifier = Modifier
-          .fillMaxWidth()
-          .clickable(
-              onClick = {
-                  val settingsIntent = Intent()
-                  settingsIntent.action = HEALTH_CONNECT_SETTINGS_ACTION
-                  activity.startActivity(settingsIntent)
+      Text(
+          modifier = Modifier.fillMaxWidth(),
+          textAlign = TextAlign.Center,
+          text = stringResource(id = R.string.app_name)
+      )
+      Spacer(modifier = Modifier.height(16.dp))
+      Screen.values().filter { it.hasMenuItem }.forEach { item ->
+          DrawerItem(
+              item = item,
+              selected = item.route == currentRoute,
+              onItemClick = {
+                  navController.navigate(item.route) {
+                      // See: https://developer.android.com/jetpack/compose/navigation#nav-to-composable
+                      navController.graph.startDestinationRoute?.let { route ->
+                          popUpTo(route) {
+                              saveState = true
+                          }
+                      }
+                      launchSingleTop = true
+                      restoreState = true
+                  }
+                  scope.launch {
+                      scaffoldState.drawerState.close()
+                  }
               }
           )
-          .height(48.dp)
-          .padding(start = 16.dp),
-      verticalAlignment = Alignment.CenterVertically
-    ) {
-      Text(
-        text = stringResource(R.string.settings),
-        style = MaterialTheme.typography.h5,
-        color = MaterialTheme.colors.onBackground
-      )
-    }
+      }
+      Spacer(modifier = Modifier.height(16.dp))
+      Row(
+          modifier = Modifier
+              .fillMaxWidth()
+              .clickable(
+                  onClick = {
+                      val settingsIntent = Intent()
+                      settingsIntent.action = HEALTH_CONNECT_SETTINGS_ACTION
+                      activity.startActivity(settingsIntent)
+                  }
+              )
+              .height(48.dp)
+              .padding(start = 16.dp),
+          verticalAlignment = Alignment.CenterVertically
+      ) {
+          Text(
+              text = stringResource(R.string.settings),
+              style = MaterialTheme.typography.h5,
+              color = MaterialTheme.colors.onBackground
+          )
+      }
+      if (currentUser != null) {
+
+          Spacer(modifier = Modifier.height(8.dp))
+          Row(
+              modifier = Modifier
+                  .fillMaxWidth()
+                  .clickable(
+                      onClick = {
+                          FirebaseAuth.getInstance().signOut()
+                          navController.navigate("welcome_screen") {
+                              // Pop up to the welcome_screen destination, removing all other screens
+                              popUpTo("welcome_screen") {
+                                  inclusive = true
+                              }
+                          }
+                      }
+                  )
+                  .height(48.dp)
+                  .padding(start = 16.dp),
+              verticalAlignment = Alignment.CenterVertically
+          ) {
+              Text(
+                  text = stringResource(R.string.sign_out_button),
+                  style = MaterialTheme.typography.h5,
+                  color = MaterialTheme.colors.onBackground
+              )
+          }
+      }
   }
 }
 

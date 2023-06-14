@@ -1,4 +1,4 @@
-package com.example.healthconnect.codelab.presentation.screen.stepscount
+package com.example.healthconnect.codelab.presentation.screen.stepscountwithfriends
 
 
 import androidx.compose.foundation.layout.Arrangement
@@ -41,15 +41,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.TextField
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.navigation.NavController
-import com.example.healthconnect.codelab.presentation.navigation.Screen
-import com.example.healthconnect.codelab.presentation.screen.stepscountwithfriends.StepsCountWithFriendsViewModel
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -61,16 +58,17 @@ import java.time.temporal.ChronoUnit
 
 
 @Composable
-fun StepsCountScreen(
+fun StepsCountScreenWithFriends(
     permissions: Set<String>,
     permissionsGranted: Boolean,
-    uiState: StepsCountViewModel.UiState,
+    uiState: StepsCountWithFriendsViewModel.UiState,
     stepsBeforeStart: Long,
     onStartClick: (ZonedDateTime) -> Unit = {},
     onError: (Throwable?) -> Unit = {},
     onPermissionsResult: () -> Unit = {},
     onPermissionsLaunch: (Set<String>) -> Unit = {},
     navController: NavController,
+    roomId: String
 ) {
 
     val stepsUntilNow = rememberSaveable{ mutableStateOf(stepsBeforeStart) }
@@ -105,7 +103,7 @@ fun StepsCountScreen(
 
     LaunchedEffect(uiState) {
         // If the initial data load has not taken place, attempt to load the data.
-        if (uiState is StepsCountViewModel.UiState.Uninitialized) {
+        if (uiState is StepsCountWithFriendsViewModel.UiState.Uninitialized) {
             onPermissionsResult()
         }
 
@@ -113,7 +111,7 @@ fun StepsCountScreen(
         // success or resulted in an error. Where an error occurred, for example in reading and
         // writing to Health Connect, the user is notified, and where the error is one that can be
         // recovered from, an attempt to do so is made.
-        if (uiState is StepsCountViewModel.UiState.Error && errorId.value != uiState.uuid) {
+        if (uiState is StepsCountWithFriendsViewModel.UiState.Error && errorId.value != uiState.uuid) {
             onError(uiState.exception)
             errorId.value = uiState.uuid
         }
@@ -124,6 +122,28 @@ fun StepsCountScreen(
         stepsUntilNow.value = stepsBeforeStart
     }
 
+    fun updateRoom(deadlineTimestamp: ZonedDateTime, goalSteps: Int, startTime: ZonedDateTime) {
+
+            val roomRef =
+                FirebaseFirestore.getInstance().collection("rooms").document(roomId)
+            roomRef.update(
+                mapOf(
+                    "deadline" to Timestamp(deadlineTimestamp.toEpochSecond(), 0),
+                    "startTime" to Timestamp(
+                        startTime.toEpochSecond(),
+                        0
+                    ),
+                    "goalSteps" to goalSteps
+                )
+            ).addOnSuccessListener {
+
+            }.addOnFailureListener { exception ->
+                Log.e(
+                    "SetDeadlineScreen",
+                    "Failed to update room: ${exception.message}"
+                )
+            }
+    }
 
     fun updateUser(deadlineTimestamp: ZonedDateTime, goalSteps: Int, startTime: ZonedDateTime) {
         val usersCollection = FirebaseFirestore.getInstance().collection("users")
@@ -132,8 +152,8 @@ fun StepsCountScreen(
         usersCollection.document(userId).update(
             mapOf(
                 "hasStarted" to true,
-                "mode" to "solo",
-                "roomId" to "-",
+                "mode" to "group",
+                "roomId" to roomId,
                 "deadline" to Timestamp(deadlineTimestamp.toEpochSecond(), 0),
                 "startTime" to Timestamp(
                     startTime.toEpochSecond(),
@@ -143,7 +163,6 @@ fun StepsCountScreen(
             )
         ).addOnSuccessListener {
             // User document updated successfully
-            navController.navigate(Screen.ProgressScreen.route)
         }.addOnFailureListener { exception ->
             Log.e(
                 "Firestore",
@@ -153,7 +172,7 @@ fun StepsCountScreen(
         }
     }
 
-    if (uiState != StepsCountViewModel.UiState.Uninitialized) {
+    if (uiState != StepsCountWithFriendsViewModel.UiState.Uninitialized) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
@@ -242,7 +261,7 @@ fun StepsCountScreen(
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
 
-                        // Start button
+                            // Start button
                         Button(
                             modifier = Modifier.fillMaxWidth(),
                             onClick = {
@@ -254,6 +273,7 @@ fun StepsCountScreen(
                                 val goalSteps = goalStepCount.toIntOrNull()
 
                                 if (deadline != null && goalSteps != null) {
+                                    updateRoom(deadlineTimestamp, goalSteps, startTime)
                                     updateUser(deadlineTimestamp, goalSteps, startTime)
                                 }
 
@@ -270,3 +290,23 @@ fun StepsCountScreen(
         }
     }
 }
+
+//@Preview
+//@Composable
+//fun StepsCountScreenPreview() {
+//    HealthConnectTheme {
+//        val runningStartTime = ZonedDateTime.now()
+//        val runningEndTime = runningStartTime.plusMinutes(30)
+//        val walkingStartTime = ZonedDateTime.now().minusMinutes(120)
+//        val walkingEndTime = walkingStartTime.plusMinutes(30)
+//        StepsCountScreenWithFriends(
+//            permissions = setOf(),
+//            permissionsGranted = true,
+//            lastStartTime = ZonedDateTime.now(),
+//            stepsBeforeStart = 1000,
+//            hasStarted = false,
+//            uiState = StepsCountWithFriendsViewModel.UiState.Done
+//        )
+//    }
+//}
+

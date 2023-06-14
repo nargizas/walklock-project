@@ -15,7 +15,6 @@
  */
 package com.example.healthconnect.codelab.presentation.navigation
 
-import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothSocket
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.material.ScaffoldState
@@ -25,28 +24,34 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.example.healthconnect.codelab.data.HealthConnectManager
 import com.example.healthconnect.codelab.presentation.screen.WelcomeScreen
 import com.example.healthconnect.codelab.presentation.screen.changes.DifferentialChangesScreen
 import com.example.healthconnect.codelab.presentation.screen.changes.DifferentialChangesViewModel
 import com.example.healthconnect.codelab.presentation.screen.changes.DifferentialChangesViewModelFactory
-import com.example.healthconnect.codelab.presentation.screen.exercisesession.ExerciseSessionScreen
-import com.example.healthconnect.codelab.presentation.screen.exercisesession.ExerciseSessionViewModel
-import com.example.healthconnect.codelab.presentation.screen.exercisesession.ExerciseSessionViewModelFactory
-import com.example.healthconnect.codelab.presentation.screen.exercisesessiondetail.ExerciseSessionDetailScreen
-import com.example.healthconnect.codelab.presentation.screen.exercisesessiondetail.ExerciseSessionDetailViewModel
-import com.example.healthconnect.codelab.presentation.screen.exercisesessiondetail.ExerciseSessionDetailViewModelFactory
-import com.example.healthconnect.codelab.presentation.screen.inputreadings.InputReadingsScreen
-import com.example.healthconnect.codelab.presentation.screen.inputreadings.InputReadingsViewModel
-import com.example.healthconnect.codelab.presentation.screen.inputreadings.InputReadingsViewModelFactory
 import com.example.healthconnect.codelab.presentation.screen.privacypolicy.PrivacyPolicyScreen
 import com.example.healthconnect.codelab.presentation.screen.stepscount.StepsCountScreen
 import com.example.healthconnect.codelab.presentation.screen.stepscount.StepsCountViewModel
 import com.example.healthconnect.codelab.presentation.screen.stepscount.StepsCountViewModelFactory
+import com.example.healthconnect.codelab.presentation.screen.login.LoginScreen
+import com.example.healthconnect.codelab.presentation.screen.mode.ModeWithFriends
+import com.example.healthconnect.codelab.presentation.screen.mode.ModeScreen
+import com.example.healthconnect.codelab.presentation.screen.mode.RoomScreen
+import com.example.healthconnect.codelab.presentation.screen.stepscountwithfriends.Leaderboard
+import com.example.healthconnect.codelab.presentation.screen.stepscountwithfriends.ProgressScreen
+import com.example.healthconnect.codelab.presentation.screen.stepscountwithfriends.ProgressScreenViewModel
+import com.example.healthconnect.codelab.presentation.screen.stepscountwithfriends.ProgressScreenViewModelFactory
+import com.example.healthconnect.codelab.presentation.screen.stepscountwithfriends.SetUpRoom
+import com.example.healthconnect.codelab.presentation.screen.stepscountwithfriends.StepsCountScreenWithFriends
+import com.example.healthconnect.codelab.presentation.screen.stepscountwithfriends.StepsCountWithFriendsViewModel
+import com.example.healthconnect.codelab.presentation.screen.stepscountwithfriends.StepsCountWithFriendsViewModelFactory
 import com.example.healthconnect.codelab.showExceptionSnackbar
 
 /**
@@ -68,7 +73,8 @@ fun HealthConnectNavigation(
         healthConnectAvailability = availability,
         onResumeAvailabilityCheck = {
           healthConnectManager.checkAvailability()
-        }
+        },
+        navController = navController,
       )
     }
     composable(
@@ -81,110 +87,6 @@ fun HealthConnectNavigation(
     ) {
       PrivacyPolicyScreen()
     }
-    composable(Screen.ExerciseSessions.route) {
-      val viewModel: ExerciseSessionViewModel = viewModel(
-        factory = ExerciseSessionViewModelFactory(
-          healthConnectManager = healthConnectManager
-        )
-      )
-      val permissionsGranted by viewModel.permissionsGranted
-      val sessionsList by viewModel.sessionsList
-      val permissions = viewModel.permissions
-      val onPermissionsResult = { viewModel.initialLoad() }
-      val permissionsLauncher =
-        rememberLauncherForActivityResult(viewModel.permissionsLauncher) {
-          onPermissionsResult()
-        }
-      ExerciseSessionScreen(
-        permissionsGranted = permissionsGranted,
-        permissions = permissions,
-        sessionsList = sessionsList,
-        uiState = viewModel.uiState,
-        onInsertClick = {
-          viewModel.insertExerciseSession()
-        },
-        onDetailsClick = { uid ->
-          navController.navigate(Screen.ExerciseSessionDetail.route + "/" + uid)
-        },
-        onError = { exception ->
-          showExceptionSnackbar(scaffoldState, scope, exception)
-        },
-        onPermissionsResult = {
-          viewModel.initialLoad()
-        },
-        onPermissionsLaunch = { values ->
-          permissionsLauncher.launch(values)
-        }
-      )
-    }
-    composable(Screen.ExerciseSessionDetail.route + "/{$UID_NAV_ARGUMENT}") {
-      val uid = it.arguments?.getString(UID_NAV_ARGUMENT)!!
-      val viewModel: ExerciseSessionDetailViewModel = viewModel(
-        factory = ExerciseSessionDetailViewModelFactory(
-          uid = uid,
-          healthConnectManager = healthConnectManager
-        )
-      )
-      val permissionsGranted by viewModel.permissionsGranted
-      val sessionMetrics by viewModel.sessionMetrics
-      val permissions = viewModel.permissions
-      val onPermissionsResult = { viewModel.initialLoad() }
-      val permissionsLauncher =
-        rememberLauncherForActivityResult(viewModel.permissionsLauncher) {
-          onPermissionsResult()
-        }
-      ExerciseSessionDetailScreen(
-        permissions = permissions,
-        permissionsGranted = permissionsGranted,
-        sessionMetrics = sessionMetrics,
-        uiState = viewModel.uiState,
-        onError = { exception ->
-          showExceptionSnackbar(scaffoldState, scope, exception)
-        },
-        onPermissionsResult = {
-          viewModel.initialLoad()
-        },
-        onPermissionsLaunch = { values ->
-          permissionsLauncher.launch(values)
-        }
-      )
-    }
-    composable(Screen.InputReadings.route) {
-      val viewModel: InputReadingsViewModel = viewModel(
-        factory = InputReadingsViewModelFactory(
-          healthConnectManager = healthConnectManager
-        )
-      )
-      val permissionsGranted by viewModel.permissionsGranted
-      val readingsList by viewModel.readingsList
-      val permissions = viewModel.permissions
-      val weeklyAvg by viewModel.weeklyAvg
-      val onPermissionsResult = { viewModel.initialLoad() }
-      val permissionsLauncher =
-        rememberLauncherForActivityResult(viewModel.permissionsLauncher) {
-          onPermissionsResult()
-        }
-      InputReadingsScreen(
-        permissionsGranted = permissionsGranted,
-        permissions = permissions,
-
-        uiState = viewModel.uiState,
-        onInsertClick = { weightInput ->
-          viewModel.inputReadings(weightInput)
-        },
-        weeklyAvg = weeklyAvg,
-        readingsList = readingsList,
-        onError = { exception ->
-          showExceptionSnackbar(scaffoldState, scope, exception)
-        },
-        onPermissionsResult = {
-          viewModel.initialLoad()
-        },
-        onPermissionsLaunch = { values ->
-          permissionsLauncher.launch(values)
-        }
-      )
-    }
     composable(Screen.StepsCounter.route) {
       val viewModel: StepsCountViewModel = viewModel(
         factory = StepsCountViewModelFactory(
@@ -196,11 +98,7 @@ fun HealthConnectNavigation(
       val permissionsGranted by viewModel.permissionsGranted
       val permissions = viewModel.permissions
       val onPermissionsResult = { viewModel.initialLoad() }
-      val recordsList by viewModel.recordsList
-      val lastStartTime by viewModel.lastStartTime
-      val totalStepsFromDayBefore by viewModel.totalStepsFromDayBefore
       val stepsBeforeStart by viewModel.stepsBeforeStart
-      val hasStarted by viewModel.hasStarted
       val permissionsLauncher =
         rememberLauncherForActivityResult(viewModel.permissionsLauncher) {
           onPermissionsResult()
@@ -209,34 +107,22 @@ fun HealthConnectNavigation(
         permissionsGranted = permissionsGranted,
         permissions = permissions,
         uiState = viewModel.uiState,
-        recordsList = recordsList,
-        lastStartTime = lastStartTime!!,
-        hasStarted = hasStarted,
-        totalStepsFromDayBefore = totalStepsFromDayBefore!!,
         stepsBeforeStart = stepsBeforeStart!!,
         onStartClick = { startTime ->
-          viewModel.setLastStartTime(startTime)
-          viewModel.setStatus(true)
           viewModel.storeStepsBeforeStart(startTime)
           viewModel.sendCommand("0")
-        },
-        onCheckClick = { startTime ->
-          viewModel.getTotalStepsFromDayBefore(startTime)
-          viewModel.readSteps(startTime)
-        },
-        onStopClick = {
-          viewModel.setStatus(false)
-          viewModel.sendCommand("1")
         },
         onError = { exception ->
           showExceptionSnackbar(scaffoldState, scope, exception)
         },
         onPermissionsResult = {
           viewModel.initialLoad()
-        }
-      ) { values ->
+        },
+        onPermissionsLaunch = { values ->
         permissionsLauncher.launch(values)
-      }
+        },
+        navController = navController
+      )
     }
     composable(Screen.DifferentialChanges.route) {
       val viewModel: DifferentialChangesViewModel = viewModel(
@@ -273,6 +159,134 @@ fun HealthConnectNavigation(
         onPermissionsLaunch = { values ->
           permissionsLauncher.launch(values)}
       )
+    }
+    composable(Screen.LoginScreen.route){
+      LoginScreen(
+        onSuccess = {
+          navController.navigate(Screen.ModeScreen.route)
+        }
+      )
+    }
+    composable(Screen.ModeScreen.route){
+      ModeScreen(
+        navController = navController
+      )
+    }
+
+    composable(Screen.ModeWithFriends.route){
+      ModeWithFriends(
+        navController = navController
+      )
+    }
+    composable(
+      "room_screen/{roomId}",
+      arguments = listOf(navArgument("roomId") { type = NavType.StringType })
+    ) { backStackEntry ->
+      RoomScreen(navController, backStackEntry.arguments?.getString("roomId") ?: "")
+    }
+    composable(
+      "set_up_room/{roomId}",
+      arguments = listOf(navArgument("roomId") { type = NavType.StringType })
+    ){ backStackEntry ->
+      SetUpRoom(navController, backStackEntry.arguments?.getString("roomId") ?: "")
+    }
+    composable("${Screen.StepsCounterWithFriends.route}/{roomId}",
+      arguments = listOf(navArgument("roomId") { type = NavType.StringType })
+    ) { backStackEntry ->
+      val viewModel: StepsCountWithFriendsViewModel = viewModel(
+        factory = StepsCountWithFriendsViewModelFactory(
+          healthConnectManager = healthConnectManager,
+          dataStore = dataStore,
+          bluetoothSocket = bluetoothSocket,
+        )
+      )
+      val stepsBeforeStart by viewModel.stepsBeforeStart
+      val permissionsGranted by viewModel.permissionsGranted
+      val permissions = viewModel.permissions
+      val onPermissionsResult = { viewModel.initialLoad() }
+      val permissionsLauncher =
+        rememberLauncherForActivityResult(viewModel.permissionsLauncher) {
+          onPermissionsResult()
+        }
+      StepsCountScreenWithFriends(
+        permissionsGranted = permissionsGranted,
+        permissions = permissions,
+        uiState = viewModel.uiState,
+        stepsBeforeStart = stepsBeforeStart!!,
+        onStartClick = { startTime ->
+          viewModel.storeStepsBeforeStart(startTime)
+          viewModel.sendCommand("0")
+          navController.navigate(Screen.ProgressScreen.route)
+        },
+        onError = { exception ->
+          showExceptionSnackbar(scaffoldState, scope, exception)
+        },
+        onPermissionsResult = {
+          viewModel.initialLoad()
+        },
+        onPermissionsLaunch = { values ->
+        permissionsLauncher.launch(values)
+        },
+        navController = navController,
+        roomId = backStackEntry.arguments?.getString("roomId") ?: ""
+      )
+    }
+    composable(Screen.ProgressScreen.route) {
+      val viewModel: ProgressScreenViewModel = viewModel(
+        factory = ProgressScreenViewModelFactory(
+          healthConnectManager = healthConnectManager,
+          dataStore = dataStore,
+          bluetoothSocket = bluetoothSocket,
+        )
+      )
+      val permissionsGranted by viewModel.permissionsGranted
+      val permissions = viewModel.permissions
+      val onPermissionsResult = { viewModel.initialLoad() }
+      val totalStepsFromDayBefore by viewModel.totalStepsFromDayBefore
+      val stepsBeforeStart by viewModel.stepsBeforeStart
+      val stepGoal by viewModel.stepGoal
+      val startTime by viewModel.startTime
+      val deadline by viewModel.deadline
+      val mode by viewModel.mode
+      val permissionsLauncher =
+        rememberLauncherForActivityResult(viewModel.permissionsLauncher) {
+          onPermissionsResult()
+        }
+      ProgressScreen(
+        permissionsGranted = permissionsGranted,
+        permissions = permissions,
+        uiState = viewModel.uiState,
+        totalStepsFromDayBefore = totalStepsFromDayBefore!!,
+        stepsBeforeStart = stepsBeforeStart!!,
+        stepGoal = stepGoal!!,
+        startTime = startTime!!,
+        deadline = deadline!!,
+        mode = mode!!,
+        onError = { exception ->
+          showExceptionSnackbar(scaffoldState, scope, exception)
+        },
+        onCheckClick = { startTime ->
+          viewModel.getTotalStepsFromDayBefore(startTime)
+        },
+        onStopClick = { startTime ->
+          viewModel.sendCommand("1")
+          viewModel.getTotalStepsFromDayBefore(startTime)
+          viewModel.endChallenge()
+        },
+        onHomeClick = {
+          navController.navigate(Screen.WelcomeScreen.route)
+        },
+        onPermissionsResult = {
+          viewModel.initialLoad()
+        },
+        onPermissionsLaunch =  { values ->
+        permissionsLauncher.launch(values)
+        },
+        navController = navController
+      )
+    }
+    composable(Screen.Leaderboard.route){
+      Leaderboard(navController)
     }
   }
 }

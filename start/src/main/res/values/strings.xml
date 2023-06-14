@@ -24,11 +24,10 @@
   <string name="differential_changes">Changes</string>
 
   <!-- Welcome screen -->
-  <string name="welcome_message">Welcome to WalkLock</string>
+  <string name="welcome_message">Welcome to WalkLock!</string>
   <string name="health_connect_logo">Health Connect logo</string>
   <string name="installed_welcome_message">
-        Health Connect is installed on this device. Use the menu to explore the sample, with each
-        screen demonstrating a different aspect of Health Connect functionality.
+        Health Connect is installed on this device. Press button below to start your walking journey!
     </string>
 
   <!-- Privacy policy screen -->
@@ -38,6 +37,9 @@
         data outside of Health Connect.
     </string>
 
+  <string name="login_screen">Login</string>
+  <string name="sign_out_button">Sign Out</string>
+  <string name="mode_screen">Choose Mode</string>
   <!-- Not installed on device -->
   <string name="not_installed_tag">not_installed_tag</string>
   <string name="market_url">market://details</string>
@@ -134,6 +136,11 @@
   <string name="differential_changes_type_distance">Distance</string>
   <string name="differential_changes_type_weight">Weight</string>
 
+
+  <!-- Room -->
+  <string name="set_up_room">Set your goal</string>
+  <string name="progress_screen">Progress</string>
   <!-- Health Connect settings -->
   <string name="settings">Settings</string>
+  <string name="leaderboard">Leaderboard</string>
 </resources>

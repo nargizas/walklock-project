@@ -17,6 +17,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -64,6 +65,10 @@ android {
 
 dependencies {
 
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'com.google.firebase:firebase-firestore-ktx:24.6.1'
     def composeBom = platform('androidx.compose:compose-bom:2022.10.00')
     implementation(composeBom)
 
@@ -93,4 +98,7 @@ dependencies {
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.2.2"
 
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation platform('com.google.firebase:firebase-bom:32.1.0')
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+    implementation 'com.google.firebase:firebase-auth-ktx'
 }

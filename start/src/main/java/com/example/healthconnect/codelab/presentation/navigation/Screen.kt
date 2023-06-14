@@ -29,10 +29,14 @@ const val UID_NAV_ARGUMENT = "uid"
  */
 enum class Screen(val route: String, val titleId: Int, val hasMenuItem: Boolean = true) {
   WelcomeScreen("welcome_screen", R.string.welcome_screen, false),
-  ExerciseSessions("exercise_sessions", R.string.exercise_sessions, false),
-  StepsCounter("steps_counter", R.string.steps_counter),
-  ExerciseSessionDetail("exercise_session_detail", R.string.exercise_session_detail, false),
-  InputReadings("input_readings", R.string.input_readings, false),
+  StepsCounter("steps_counter", R.string.steps_counter, false),
+  StepsCounterWithFriends("steps_counter_with_friends", R.string.set_up_room, false),
   DifferentialChanges("differential_changes", R.string.differential_changes),
-  PrivacyPolicy("privacy_policy", R.string.privacy_policy, false)
+  PrivacyPolicy("privacy_policy", R.string.privacy_policy, ),
+  LoginScreen("login_screen", R.string.login_screen, false),
+  ProgressScreen("progress_screen", R.string.progress_screen, false),
+  ModeScreen("mode_screen", R.string.mode_screen, false),
+  ModeWithFriends("mode_with_friends_screen", R.string.mode_screen, false),
+  Leaderboard("leaderboard", R.string.leaderboard, false),
+  SetUpRoom("set_up_room", R.string.set_up_room, false),
 }

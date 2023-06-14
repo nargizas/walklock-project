@@ -1,4 +1,4 @@
-package com.example.healthconnect.codelab.presentation.screen.stepscount
+package com.example.healthconnect.codelab.presentation.screen.stepscountwithfriends
 
 import android.bluetooth.BluetoothSocket
 
@@ -11,6 +11,12 @@ import androidx.compose.runtime.setValue
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
+
+import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.StepsRecord
 
@@ -18,10 +24,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.healthconnect.codelab.data.HealthConnectManager
-import com.example.healthconnect.codelab.presentation.screen.stepscountwithfriends.StepsCountWithFriendsViewModel
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import java.io.IOException
 
 import java.time.Instant
@@ -32,7 +41,7 @@ import java.util.UUID
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 
-class StepsCountViewModel(private val healthConnectManager: HealthConnectManager, private val dataStore: DataStore<Preferences>, private val bluetoothSocket: BluetoothSocket) :
+class StepsCountWithFriendsViewModel(private val healthConnectManager: HealthConnectManager, private val dataStore: DataStore<Preferences>, private val bluetoothSocket: BluetoothSocket) :
     ViewModel() {
 
     fun sendCommand(command: String) {
@@ -71,8 +80,7 @@ class StepsCountViewModel(private val healthConnectManager: HealthConnectManager
         private set
 
 
-    var uiState: StepsCountViewModel.UiState by mutableStateOf(
-        StepsCountViewModel.UiState.Uninitialized)
+    var uiState: UiState by mutableStateOf(UiState.Uninitialized)
         private set
 
     val permissionsLauncher = healthConnectManager.requestPermissionsActivityContract()
@@ -130,6 +138,9 @@ class StepsCountViewModel(private val healthConnectManager: HealthConnectManager
         }
     }
 
+
+
+
     /**
      * Provides permission check and error handling for Health Connect suspend function calls.
      *
@@ -168,13 +179,13 @@ class StepsCountViewModel(private val healthConnectManager: HealthConnectManager
     }
 }
 
-class StepsCountViewModelFactory(
+class StepsCountWithFriendsViewModelFactory(
     private val healthConnectManager: HealthConnectManager, private val dataStore: DataStore<Preferences>, private val bluetoothSocket: BluetoothSocket
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(StepsCountViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(StepsCountWithFriendsViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return StepsCountViewModel(
+            return StepsCountWithFriendsViewModel(
                 healthConnectManager = healthConnectManager,
                 dataStore = dataStore,
                 bluetoothSocket = bluetoothSocket

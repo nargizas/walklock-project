@@ -23,5 +23,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Health Connect Codelab"
 include ':start'
-include ':finished'
 

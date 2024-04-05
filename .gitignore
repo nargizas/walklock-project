@@ -34,3 +34,5 @@ proguard-project.txt
 # Android Studio/IDEA
 *.iml
 .idea
+
+start/google-services.json
